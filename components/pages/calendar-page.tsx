@@ -20,6 +20,15 @@ export default function CalendarPage() {
             Full calendar view will be available soon
           </Text>
         </View>
+
+         <View style={styles.tile}>
+          <Text style={styles.emoji}>!</Text>
+          <Text style={styles.tileTitle}>Coming Soon</Text>
+          <Text style={styles.tileDescription}>
+            Important dates view will be available soon
+          </Text>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -51,6 +60,7 @@ const styles = StyleSheet.create({
   },
   tile: {
     marginHorizontal: 16,
+    marginBottom: 14,
     backgroundColor: "#fff",
     borderRadius: 16,
     paddingVertical: 32,
