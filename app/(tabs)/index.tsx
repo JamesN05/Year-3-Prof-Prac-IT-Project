@@ -1,85 +1,39 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRef } from 'react';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 
-import ActivityGrid from '@/components/activity-grid';
-import HabitsCard, { type Habit } from '@/components/habits-card';
-import StatCard from '@/components/stat-card';
+import CalendarPage from '@/components/pages/calendar-page';
+import HomePage from '@/components/pages/home-page';
+import SettingsPage from '@/components/pages/settings-page';
+import SocialPage from '@/components/pages/social-page';
 
-export default function HomeScreen() {
-  const [dailyHabits, setDailyHabits] = useState<Habit[]>([]);
-  const [weeklyHabits, setWeeklyHabits] = useState<Habit[]>([]);
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-  function addDailyHabit(title: string) {
-    setDailyHabits(prev => [...prev, { id: Date.now().toString(), title }]);
-  }
+// Page order: Social (0) | Home (1) | Calendar (2) | Settings (3)
+const HOME_INDEX = 1;
 
-  function removeDailyHabit(id: string) {
-    setDailyHabits(prev => prev.filter(h => h.id !== id));
-  }
-
-  function addWeeklyHabit(title: string) {
-    setWeeklyHabits(prev => [...prev, { id: Date.now().toString(), title }]);
-  }
-
-  function removeWeeklyHabit(id: string) {
-    setWeeklyHabits(prev => prev.filter(h => h.id !== id));
-  }
+export default function SwipeRoot() {
+  const scrollRef = useRef<ScrollView>(null);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <HabitsCard
-          title="DAILY HABITS"
-          habits={dailyHabits}
-          onAdd={addDailyHabit}
-          onRemove={removeDailyHabit}
-        />
-        <HabitsCard
-          title="WEEKLY HABITS"
-          habits={weeklyHabits}
-          onAdd={addWeeklyHabit}
-          onRemove={removeWeeklyHabit}
-        />
-
-        <View style={styles.statRow}>
-          <StatCard emoji="🔥" label="10 DAYS" />
-          <StatCard emoji="☁️" label="CLOUDY" />
-        </View>
-
-        <View style={styles.gridCard}>
-          <ActivityGrid />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      bounces={false}
+      contentOffset={{ x: HOME_INDEX * SCREEN_WIDTH, y: 0 }}
+      style={styles.container}
+    >
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}><SocialPage /></View>
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}><HomePage /></View>
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}><CalendarPage /></View>
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}><SettingsPage /></View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  container: {
     flex: 1,
-    backgroundColor: '#9EDCC8',
-  },
-  scroll: {
-    paddingTop: 20,
-    paddingBottom: 32,
-  },
-  statRow: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginBottom: 14,
-    gap: 14,
-  },
-  gridCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    padding: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
   },
 });
