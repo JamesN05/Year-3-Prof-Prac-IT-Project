@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ActivityGrid from "@/components/activity-grid";
 import HabitsCard, { type Habit } from "@/components/habits-card";
 import StatCard from "@/components/stat-card";
+import WeatherCard from "@/components/weather-card";
 
 const STREAK_KEY = "daily_streak";
 
@@ -124,7 +125,7 @@ export default function HomePage() {
             emoji="🔥"
             label={streak > 0 ? `${streak} DAYS` : "NO STREAK"}
           />
-          <StatCard emoji="☁️" label="CLOUDY" />
+          <WeatherCard />
         </View>
         <View style={styles.gridCard}>
           <ActivityGrid />
