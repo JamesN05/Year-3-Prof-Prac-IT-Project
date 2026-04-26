@@ -1,13 +1,22 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SocialPage() {
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Social</Text>
-        <Text style={styles.subtitle}>Coming soon</Text>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Social</Text>
+          <Text style={styles.subtitle}>
+            Let everyone know about your achievements!
+          </Text>
+        </View>
+        <View>
+          <SocialPage
+            name=
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -20,6 +29,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 16,
   },
   title: {
     fontSize: 28,
@@ -31,5 +41,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     marginTop: 4,
+  },
+  empty: {
+    alignItems: "center",
+    marginTop: 60,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#555",
   },
 });
