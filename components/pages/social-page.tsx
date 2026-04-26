@@ -1,5 +1,7 @@
+import { FRIENDS } from "@/components/friends";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SocialPost from "../social-post";
 
 export default function SocialPage() {
   return (
@@ -12,8 +14,12 @@ export default function SocialPage() {
           </Text>
         </View>
         <View>
-          <SocialPage
-            name=
+          <SocialPost
+            name={FRIENDS[4].name}
+            streak={FRIENDS[4].streak}
+            avatar={FRIENDS[4].avatar}
+            postImage={require("@/assets/images/SocialPost4.png")}
+            message="Has completed all of their daily tasks 🎉"
           />
         </View>
       </ScrollView>
