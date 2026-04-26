@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "769234401259",
+    "project_id": "taskmaxxing",
+    "storage_bucket": "taskmaxxing.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769234401259:android:14ce97eae28a598b494bae",
+        "android_client_info": {
+          "package_name": "TaskMaxxing.Android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3vOCUidOrCIAnRw08fZFQwbnAblnruqw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
