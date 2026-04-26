@@ -11,11 +11,7 @@ export default function SocialPage() {
             Let everyone know about your achievements!
           </Text>
         </View>
-        <View>
-          <SocialPage
-            name=
-          />
-        </View>
+        <View />
       </ScrollView>
     </SafeAreaView>
   );
