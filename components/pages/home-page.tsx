@@ -9,6 +9,7 @@ import StatCard from "@/components/stat-card";
 import WeatherCard from "@/components/weather-card";
 
 const STREAK_KEY = "daily_streak";
+const HISTORY_KEY = "completion_history";
 
 type StreakData = {
   count: number;
@@ -29,7 +30,9 @@ export default function HomePage() {
   const [dailyHabits, setDailyHabits] = useState<Habit[]>([]);
   const [weeklyHabits, setWeeklyHabits] = useState<Habit[]>([]);
   const [streak, setStreak] = useState(0);
+  const [completedDates, setCompletedDates] = useState<Set<string>>(new Set());
 
+  // Load streak and completion history on mount
   useEffect(() => {
     AsyncStorage.getItem(STREAK_KEY).then((raw) => {
       if (!raw) return;
@@ -47,23 +50,41 @@ export default function HomePage() {
         setStreak(data.count);
       }
     });
+
+    AsyncStorage.getItem(HISTORY_KEY).then((raw) => {
+      if (!raw) return;
+      const dates: string[] = JSON.parse(raw);
+      setCompletedDates(new Set(dates));
+    });
   }, []);
 
   const allDailyDone =
     dailyHabits.length > 0 && dailyHabits.every((h) => h.completed);
 
+  // When all daily habits are done: update streak + record date in history
   useEffect(() => {
     if (!allDailyDone) return;
     const today = todayString();
+
     AsyncStorage.getItem(STREAK_KEY).then(async (raw) => {
       const data: StreakData = raw
         ? JSON.parse(raw)
         : { count: 0, lastDate: null };
       if (data.lastDate === today) return;
       const newCount = data.lastDate === yesterdayString() ? data.count + 1 : 1;
-      const newData: StreakData = { count: newCount, lastDate: today };
-      await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(newData));
+      await AsyncStorage.setItem(
+        STREAK_KEY,
+        JSON.stringify({ count: newCount, lastDate: today }),
+      );
       setStreak(newCount);
+    });
+
+    AsyncStorage.getItem(HISTORY_KEY).then(async (raw) => {
+      const dates: string[] = raw ? JSON.parse(raw) : [];
+      if (dates.includes(today)) return;
+      const updated = [...dates, today];
+      await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+      setCompletedDates(new Set(updated));
     });
   }, [allDailyDone]);
 
@@ -128,7 +149,7 @@ export default function HomePage() {
           <WeatherCard />
         </View>
         <View style={styles.gridCard}>
-          <ActivityGrid />
+          <ActivityGrid completedDates={completedDates} />
         </View>
       </ScrollView>
     </SafeAreaView>
