@@ -21,14 +21,13 @@ export default function CalendarPage() {
           </Text>
         </View>
 
-         <View style={styles.tile}>
+        <View style={styles.tile}>
           <Text style={styles.emoji}>!</Text>
           <Text style={styles.tileTitle}>Coming Soon</Text>
           <Text style={styles.tileDescription}>
             Important dates view will be available soon
           </Text>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

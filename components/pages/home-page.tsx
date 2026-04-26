@@ -7,6 +7,8 @@ import ActivityGrid from "@/components/activity-grid";
 import HabitsCard, { type Habit } from "@/components/habits-card";
 import StatCard from "@/components/stat-card";
 import WeatherCard from "@/components/weather-card";
+//Testing Firebase Remocve after
+import FirestoreTerminalTest from "@/components/FirestoreTerminalTest";
 
 const STREAK_KEY = "daily_streak";
 const HISTORY_KEY = "completion_history";
@@ -124,6 +126,9 @@ export default function HomePage() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {/* Testing Firebase Remove after */}
+        <FirestoreTerminalTest />
+
         <HabitsCard
           title="DAILY HABITS"
           habits={dailyHabits}
