@@ -65,16 +65,16 @@ export default function SettingsPage() {
   };
 
   const syncNotifications = async () => {
-    try { 
+    try {
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       if (dailyReminder) {
         await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Daily Reminder',
-             body: "Don’t forget to complete your tasks today!",
+            body: "Don't forget to complete your tasks today!",
           },
-          trigger: { hour: 9, minute: 0, repeats: true,} as any 
+          trigger: { hour: 9, minute: 0, repeats: true } as any,
         });
       }
 
@@ -82,16 +82,15 @@ export default function SettingsPage() {
         await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Streak Alert',
-            body: "Keep your streak alive!",
+            body: 'Keep your streak alive!',
           },
-          trigger: { 
-            seconds: 3600,
-            repeats: true,
-          } as any,
+          trigger: { seconds: 3600, repeats: true } as any,
         });
       }
     } catch (e) {
       console.log('Failed to sync notifications:', e);
+    }
+  };
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure?', [
@@ -101,7 +100,7 @@ export default function SettingsPage() {
         style: 'destructive',
         onPress: async () => {
           await signOut(auth);
-          router.replace('/login');
+          router.replace('/(auth)/login' as any);
         },
       },
     ]);
@@ -141,7 +140,7 @@ export default function SettingsPage() {
       </View>
 
       <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 16 }}>
-        <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+        <TouchableOpacity onPress={() => router.push('/(auth)/login' as any)}>
           <Text>Edit Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Linking.openURL('https://example.com/privacy')}>
@@ -164,13 +163,11 @@ export default function SettingsPage() {
   );
 }
 
-  function Row({ label, value, setValue }: { label: string; value: boolean; setValue: (v: boolean) => void }) {
-    return (
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
-        <Text>{label}</Text>
-        <Switch value={value} onValueChange={setValue} />
-      </View>
-);
-}
-  }
+function Row({ label, value, setValue }: { label: string; value: boolean; setValue: (v: boolean) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+      <Text>{label}</Text>
+      <Switch value={value} onValueChange={setValue} />
+    </View>
+  );
 }
