@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Image,
-    ImageSourcePropType,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type PostInfo = {
@@ -26,6 +26,20 @@ export default function SocialPost({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      //console.log("tick", Date.now());
+      const shouldLike = Math.random() < 0.1;
+      if (!shouldLike) return;
+      setLikeCount((prev) => {
+        //console.log("incrementing to", prev + 1);
+        return prev + 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   function handleLike() {
     setLiked((prev) => !prev);
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
@@ -42,16 +56,18 @@ export default function SocialPost({
         <Text style={styles.message}>{message}</Text>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.likeButton}
-          onPress={handleLike}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.likeHeart}>{liked ? "❤️" : "🤍"}</Text>
+        <View style={styles.likeRow}>
+          <TouchableOpacity
+            style={styles.likeButton}
+            onPress={handleLike}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.likeHeart}>{liked ? "❤️" : "🤍"}</Text>
+          </TouchableOpacity>
           <Text style={[styles.likeCount, liked && styles.likeCountActive]}>
             {likeCount}
           </Text>
-        </TouchableOpacity>
+        </View>
         <Text style={styles.streak}>🔥 {streak}</Text>
       </View>
     </View>
@@ -127,5 +143,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#c96a00",
+  },
+  likeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
 });

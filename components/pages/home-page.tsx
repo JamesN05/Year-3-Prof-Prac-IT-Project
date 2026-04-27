@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActivityGrid from "@/components/activity-grid";
@@ -148,6 +148,10 @@ export default function HomePage() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+<View style={styles.header}>
+          <Text style={styles.title}>TaskMaxxing™</Text>
+        </View>
+        
         {/* Testing Firebase Remove after */}
         <FirestoreTerminalTest />
 
@@ -188,6 +192,16 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: "#9EDCC8",
+  },
+  header: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    fontStyle: "italic",
+    color: "#1a1a1a",
   },
   scroll: {
     paddingTop: 20,
