@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActivityGrid from "@/components/activity-grid";
@@ -90,6 +92,29 @@ export default function HomePage() {
     });
   }, [allDailyDone]);
 
+  async function handleShareProgress() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Camera access is required to share your progress.",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"] as ImagePicker.MediaType[],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      router.push({
+        pathname: "/create-post" as any,
+        params: { imageUri: result.assets[0].uri },
+      });
+    }
+  }
+
   function addDailyHabit(title: string) {
     setDailyHabits((prev) => [
       ...prev,
@@ -126,10 +151,10 @@ export default function HomePage() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-<View style={styles.header}>
+        <View style={styles.header}>
           <Text style={styles.title}>TaskMaxxing™</Text>
         </View>
-        
+
         {/* Testing Firebase Remove after */}
         <FirestoreTerminalTest />
 
@@ -141,6 +166,7 @@ export default function HomePage() {
           onAdd={addDailyHabit}
           onRemove={removeDailyHabit}
           onToggle={toggleDailyHabit}
+          onShareProgress={handleShareProgress}
         />
         <HabitsCard
           title="WEEKLY HABITS"

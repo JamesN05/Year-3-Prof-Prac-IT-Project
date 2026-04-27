@@ -15,6 +15,7 @@ type Props = {
   onAdd: (title: string) => void;
   onRemove: (id: string) => void;
   onToggle: (id: string) => void;
+  onShareProgress?: () => void;
 };
 
 export default function HabitsCard({
@@ -25,6 +26,7 @@ export default function HabitsCard({
   onAdd,
   onRemove,
   onToggle,
+  onShareProgress,
 }: Props) {
   const [inputText, setInputText] = useState('');
   const [collapsed, setCollapsed] = useState(false);
@@ -61,7 +63,14 @@ export default function HabitsCard({
       )}
 
       {counterText !== null && (
-        <Text style={[styles.counter, allDone && styles.counterDone]}>{counterText}</Text>
+        <View style={styles.counterRow}>
+          <Text style={[styles.counter, allDone && styles.counterDone]}>{counterText}</Text>
+          {allDone && onShareProgress && (
+            <TouchableOpacity onPress={onShareProgress} hitSlop={8} style={styles.cameraBtn}>
+              <Text style={styles.cameraBtnText}>📷</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
 
       {!collapsed && (
@@ -138,10 +147,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
+  counterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   counter: {
     fontSize: 12,
     color: '#888',
-    marginBottom: 10,
+    flex: 1,
+  },
+  cameraBtn: {
+    paddingLeft: 6,
+  },
+  cameraBtnText: {
+    fontSize: 16,
   },
   counterDone: {
     color: '#30a14e',

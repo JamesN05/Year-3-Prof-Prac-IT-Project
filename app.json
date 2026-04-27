@@ -30,6 +30,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow TaskMaxxing to access your photos to share your achievements.",
+          "cameraPermission": "Allow TaskMaxxing to use the camera to capture your progress."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
