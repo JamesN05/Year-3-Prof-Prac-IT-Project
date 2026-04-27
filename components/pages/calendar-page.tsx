@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -138,8 +138,53 @@ function MonthCalendar({ year, month, notes, completedDates, onDayPress }: Month
 
 }
 
+interface MonthlySummaryProps {
+  month: MonthItem;
+  completedDates: Set<string>;
+  notes: Record<string, string>;
+}
+
+function MonthlySummary({ month, completedDates, notes }: MonthlySummaryProps) {
+  const { year, month: m } = month;
+  const daysInMonth = new Date(year, m + 1, 0).getDate();
+  const isCurrentMonth = year === TODAY.getFullYear() && m === TODAY.getMonth();
+  const isPast = year < TODAY.getFullYear() || (year === TODAY.getFullYear() && m < TODAY.getMonth());
+  const elapsedDays = isCurrentMonth ? TODAY.getDate() : isPast ? daysInMonth : 0;
+
+  const prefix = `${year}-${String(m + 1).padStart(2, "0")}`;
+  let completedCount = 0;
+  completedDates.forEach((d) => { if (d.startsWith(prefix)) completedCount++; });
+  const notesCount = Object.keys(notes).filter((k) => k.startsWith(prefix)).length;
+  const rate = elapsedDays > 0 ? Math.round((completedCount / elapsedDays) * 100) : null;
+
+  return (
+    <View style={styles.summaryCard}>
+      <Text style={styles.summaryTitle}>{MONTH_NAMES[m]} {year}</Text>
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryTile}>
+          <Text style={styles.summaryValue}>{completedCount}</Text>
+          <Text style={styles.summaryLabel}>Days{"\n"}Completed</Text>
+        </View>
+        <View style={styles.summaryTile}>
+          <Text style={styles.summaryValue}>{rate !== null ? `${rate}%` : "—"}</Text>
+          <Text style={styles.summaryLabel}>Completion{"\n"}Rate</Text>
+        </View>
+        <View style={styles.summaryTile}>
+          <Text style={styles.summaryValue}>{notesCount}</Text>
+          <Text style={styles.summaryLabel}>Notes{"\n"}Added</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function CalendarPage() {
   const flatListRef = useRef<FlatList>(null);
+  const [visibleMonthIdx, setVisibleMonthIdx] = useState(CENTER_INDEX);
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 });
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) setVisibleMonthIdx(viewableItems[0].index);
+  }, []);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [completedDates, setCompletedDates] = useState<Set<string>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
@@ -151,7 +196,7 @@ export default function CalendarPage() {
       if (!raw) return;
       setCompletedDates(new Set(JSON.parse(raw) as string[]));
     });
-  }, []);
+  }, [visibleMonthIdx]);
 
   const openModal = (key: string) => {
     setSelectedKey(key);
@@ -213,6 +258,8 @@ export default function CalendarPage() {
           })}
           contentContainerStyle={styles.flatListContent}
           style={{ height: CALENDAR_CARD_HEIGHT }}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig.current}
           renderItem={({ item }) => (
             <MonthCalendar
               year={item.year}
@@ -222,6 +269,12 @@ export default function CalendarPage() {
               onDayPress={openModal}
             />
           )}
+        />
+
+        <MonthlySummary
+          month={MONTHS[visibleMonthIdx]}
+          completedDates={completedDates}
+          notes={notes}
         />
 
         <View style={styles.importantSection}>
@@ -548,5 +601,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#fff",
+  },
+
+  summaryCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  summaryTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+
+  summaryTile: {
+    alignItems: "center",
+    flex: 1,
+  },
+
+  summaryValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#2ECC8C",
+  },
+
+  summaryLabel: {
+    fontSize: 11,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 2,
   },
 });
