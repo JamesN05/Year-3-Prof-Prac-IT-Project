@@ -16,6 +16,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CALENDAR_WIDTH = SCREEN_WIDTH - 32;
+const CELL_SIZE = Math.floor(CALENDAR_WIDTH / 7);
+// paddingVertical*2 + title row + day-label row + 6 grid rows (worst case month)
+const CALENDAR_CARD_HEIGHT = 40 + 38 + 20 + 6 * CELL_SIZE;
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
@@ -209,6 +212,7 @@ export default function CalendarPage() {
             index,
           })}
           contentContainerStyle={styles.flatListContent}
+          style={{ height: CALENDAR_CARD_HEIGHT }}
           renderItem={({ item }) => (
             <MonthCalendar
               year={item.year}
@@ -321,11 +325,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginHorizontal: 16,
     width: CALENDAR_WIDTH,
+    alignSelf: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-    elevation: 3,
+
   },
 
   monthTitle: {
@@ -353,11 +358,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
   },
+  
   cell: {
     width: `${100 / 7}%`,
     aspectRatio: 1,
+    marginBottom: 12,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#dbfffc",
+    borderRadius: 100,
   },
 
   emptyCell: {
@@ -366,7 +375,7 @@ const styles = StyleSheet.create({
 
   completedRing: {
     borderWidth: 2,
-    borderColor: "#F97316",
+    borderColor: "#ff9100",
     borderRadius: 100,
   },
 
@@ -378,6 +387,7 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 13,
     color: "#333",
+    alignItems: "center",
   },
 
   todayText: {
@@ -479,7 +489,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#1a1a1a",
-    marginBottom: 12,
+    marginBottom: 22,
   },
 
   textInput: {
