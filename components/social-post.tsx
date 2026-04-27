@@ -28,11 +28,11 @@ export default function SocialPost({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("tick", Date.now());
+      //console.log("tick", Date.now());
       const shouldLike = Math.random() < 0.1;
       if (!shouldLike) return;
       setLikeCount((prev) => {
-        console.log("incrementing to", prev + 1);
+        //console.log("incrementing to", prev + 1);
         return prev + 1;
       });
     }, 1000);
