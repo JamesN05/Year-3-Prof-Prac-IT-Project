@@ -1,10 +1,14 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
+  Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -53,7 +57,21 @@ function buildGrid(year: number, month: number): (number | null)[] {
 
 const MONTHS = buildMonths();
 
-function MonthCalendar({ year, month }: MonthItem) {
+function toKey(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function formatKey(key: string): string {
+  const [y, m, d] = key.split("-");
+  return `${MONTH_NAMES[parseInt(m) - 1]} ${parseInt(d)}, ${y}`;
+}
+
+interface MonthCalendarProps extends MonthItem {
+  notes: Record<string, string>;
+  onDayPress: (key: string) => void;
+}
+
+function MonthCalendar({ year, month, notes, onDayPress }: MonthCalendarProps) {
 
   const grid = buildGrid(year, month);
   const isCurrentMonth =
@@ -77,34 +95,82 @@ function MonthCalendar({ year, month }: MonthItem) {
         {grid.map((day, idx) => {
           const isToday =
             isCurrentMonth && day === TODAY.getDate();
+          const key = day !== null ? toKey(year, month, day) : null;
+          const hasNote = key !== null && !!notes[key];
 
           return (
-            <View
+            <TouchableOpacity
               key={idx}
               style={[
                 styles.cell,
                 isToday && styles.todayCell,
                 day === null && styles.emptyCell,
               ]}
+              onPress={() => key && onDayPress(key)}
+              disabled={day === null}
+              activeOpacity={0.7}
             >
               {day !== null && (
-                <Text style={[styles.dayText, isToday && styles.todayText]}>
-                  {day}
-                </Text>
+                <>
+                  <Text style={[styles.dayText, isToday && styles.todayText]}>
+                    {day}
+                  </Text>
+                  {hasNote && (
+                    <View style={[styles.noteDot, isToday && styles.noteDotToday]} />
+                  )}
+                </>
               )}
-            </View>
+            </TouchableOpacity>
           );
         })}
-        
+
       </View>
     </View>
   );
 
-  
+
 }
 
 export default function CalendarPage() {
   const flatListRef = useRef<FlatList>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [draftText, setDraftText] = useState("");
+
+  const openModal = (key: string) => {
+    setSelectedKey(key);
+    setDraftText(notes[key] || "");
+    setModalVisible(true);
+  };
+
+  const saveNote = () => {
+    if (selectedKey) {
+      if (draftText.trim()) {
+        setNotes((prev) => ({ ...prev, [selectedKey]: draftText.trim() }));
+      } else {
+        setNotes((prev) => {
+          const updated = { ...prev };
+          delete updated[selectedKey];
+          return updated;
+        });
+      }
+    }
+    setModalVisible(false);
+  };
+
+  const deleteNote = () => {
+    if (selectedKey) {
+      setNotes((prev) => {
+        const updated = { ...prev };
+        delete updated[selectedKey];
+        return updated;
+      });
+    }
+    setModalVisible(false);
+  };
+
+  const sortedNotes = Object.entries(notes).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -132,18 +198,74 @@ export default function CalendarPage() {
           })}
           contentContainerStyle={styles.flatListContent}
           renderItem={({ item }) => (
-            <MonthCalendar year={item.year} month={item.month} />
+            <MonthCalendar
+              year={item.year}
+              month={item.month}
+              notes={notes}
+              onDayPress={openModal}
+            />
           )}
         />
 
-        <View style={styles.tile}>
-          <Text style={styles.emoji}>!</Text>
-          <Text style={styles.tileTitle}>Coming Soon</Text>
-          <Text style={styles.tileDescription}>
-            Important dates view will be available soon
-          </Text>
+        <View style={styles.importantSection}>
+          <Text style={styles.sectionTitle}>Important Dates</Text>
+          {sortedNotes.length === 0 ? (
+            <Text style={styles.emptyHint}>Tap on a date to get started!</Text>
+          ) : (
+            sortedNotes.map(([key, note]) => (
+              <TouchableOpacity
+                key={key}
+                style={styles.noteRow}
+                onPress={() => openModal(key)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.noteRowLeft}>
+                  <Text style={styles.noteDate}>{formatKey(key)}</Text>
+                  <Text style={styles.noteBody} numberOfLines={2}>{note}</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>
+              {selectedKey ? formatKey(selectedKey) : ""}
+            </Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Add a note..."
+              placeholderTextColor="#aaa"
+              value={draftText}
+              onChangeText={setDraftText}
+              multiline
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              {selectedKey && notes[selectedKey] && (
+                <TouchableOpacity style={styles.deleteBtn} onPress={deleteNote}>
+                  <Text style={styles.deleteBtnText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveBtn} onPress={saveNote}>
+                <Text style={styles.saveBtnText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -244,15 +366,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  tile: {
+  noteDot: {
+    position: "absolute",
+    bottom: 3,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#2ECC8C",
+  },
+
+  noteDotToday: {
+    backgroundColor: "#fff",
+  },
+
+  importantSection: {
     marginHorizontal: 16,
     marginTop: 16,
     backgroundColor: "#fff",
     borderRadius: 16,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -260,21 +393,131 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  emoji: {
-    fontSize: 48,
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#1a1a1a",
     marginBottom: 12,
   },
 
-  tileTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 8,
+  emptyHint: {
+    fontSize: 13,
+    color: "#888",
+    textAlign: "center",
+    paddingVertical: 12,
   },
 
-  tileDescription: {
+  noteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+
+  noteRowLeft: {
+    flex: 1,
+  },
+
+  noteDate: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 2,
+  },
+
+  noteBody: {
     fontSize: 13,
     color: "#666",
-    textAlign: "center",
+  },
+
+  chevron: {
+    fontSize: 22,
+    color: "#ccc",
+    marginLeft: 8,
+  },
+
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalCard: {
+    width: SCREEN_WIDTH - 48,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 12,
+  },
+
+  textInput: {
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    color: "#1a1a1a",
+    minHeight: 80,
+    textAlignVertical: "top",
+    marginBottom: 16,
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+
+  deleteBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: "#fee2e2",
+    marginRight: "auto",
+  },
+
+  deleteBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ef4444",
+  },
+
+  cancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: "#f0f0f0",
+  },
+
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#555",
+  },
+
+  saveBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: "#2ECC8C",
+  },
+
+  saveBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
