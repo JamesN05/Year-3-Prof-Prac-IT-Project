@@ -26,7 +26,7 @@ const POST_IMAGES = [
   require("@/assets/images/SocialPost5.png"),
 ];
 
-const GREGORY_AVATAR = require("@/assets/images/Gregory.png");
+const USER_AVATAR = require("@/assets/images/UserPlaceholder.png");
 
 const INITIAL_POSTS: PostData[] = [
   {
@@ -101,7 +101,7 @@ export default function SocialPage() {
               streak={post.streak}
               avatar={
                 post.friendIndex === -1
-                  ? GREGORY_AVATAR
+                  ? USER_AVATAR
                   : FRIENDS[post.friendIndex].avatar
               }
               postImage={post.postImage}
