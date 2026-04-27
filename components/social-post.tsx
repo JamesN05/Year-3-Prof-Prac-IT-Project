@@ -56,7 +56,7 @@ export default function SocialPost({
       <Image
         source={postImageUri ? { uri: postImageUri } : postImage!}
         style={styles.postImage}
-        resizeMode="cover"
+        resizeMode={postImageUri ? "cover" : "contain"}
       />
       <View style={styles.footer}>
         <Text style={styles.message}>{message}</Text>
