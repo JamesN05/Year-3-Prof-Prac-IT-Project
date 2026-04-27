@@ -60,7 +60,7 @@ function MonthCalendar({ year, month }: MonthItem) {
     year === TODAY.getFullYear() && month === TODAY.getMonth();
 
   return (
-    <View style={[styles.monthCard, { width: CALENDAR_WIDTH }]}>
+    <View style={styles.monthCard}>
       <Text style={styles.monthTitle}>
         {MONTH_NAMES[month]} {year}
       </Text>
@@ -126,8 +126,8 @@ export default function CalendarPage() {
           showsHorizontalScrollIndicator={false}
           initialScrollIndex={CENTER_INDEX}
           getItemLayout={(_, index) => ({
-            length: CALENDAR_WIDTH + 16,
-            offset: (CALENDAR_WIDTH + 16) * index,
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
             index,
           })}
           contentContainerStyle={styles.flatListContent}
@@ -177,16 +177,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  flatListContent: {
-    paddingHorizontal: 16,
-    gap: 16,
-  },
+  flatListContent: {},
 
   monthCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 12,
+    marginHorizontal: 16,
+    width: CALENDAR_WIDTH,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
