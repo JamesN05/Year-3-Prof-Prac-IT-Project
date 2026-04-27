@@ -13,6 +13,7 @@ type PostData = {
   message: string;
   postImageUri?: string;
   streak: number;
+  authorName?: string;
 };
 
 const USER_POSTS_KEY = "user_posts";
@@ -94,7 +95,7 @@ export default function SocialPage() {
               key={post.id}
               name={
                 post.friendIndex === -1
-                  ? "User"
+                  ? post.authorName || "User"
                   : FRIENDS[post.friendIndex].name
               }
               streak={post.streak}

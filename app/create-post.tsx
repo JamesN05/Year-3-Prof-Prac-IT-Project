@@ -1,5 +1,8 @@
+import { useAuth } from "@/contexts/auth-context";
+import { db } from "@/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
   Image,
@@ -26,6 +29,8 @@ export default function CreatePostScreen() {
     streak: string;
   }>();
 
+  const { user } = useAuth();
+
   function handleCancel() {
     router.back();
   }
@@ -33,12 +38,21 @@ export default function CreatePostScreen() {
   async function handleShare() {
     setPosting(true);
 
+    let userName = "User";
+    if (user) {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        userName = snap.data().username || "User";
+      }
+    }
+
     const newPost = {
       id: Date.now(),
       friendIndex: -1,
       postImageUri: imageUri,
       streak: Number(streak) || 0,
-      message: caption, // use the caption they typed
+      message: caption,
+      authorName: userName,
       createdAt: Date.now(),
     };
 
