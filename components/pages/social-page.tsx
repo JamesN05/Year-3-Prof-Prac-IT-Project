@@ -8,6 +8,7 @@ type PostData = {
   id: number;
   friendIndex: number;
   postImage: number;
+  message: string;
 };
 
 const POST_IMAGES = [
@@ -19,7 +20,12 @@ const POST_IMAGES = [
 ];
 
 const INITIAL_POSTS: PostData[] = [
-  { id: 0, friendIndex: 4, postImage: POST_IMAGES[4] },
+  {
+    id: 0,
+    friendIndex: 4,
+    postImage: POST_IMAGES[4],
+    message: `${FRIENDS[4].name} has completed all of their daily tasks 🎉`,
+  },
 ];
 
 export default function SocialPage() {
@@ -36,6 +42,10 @@ export default function SocialPage() {
         id: Date.now(),
         friendIndex: randomFriendIndex,
         postImage: POST_IMAGES[randomImageIndex],
+        message:
+          Math.random() < 0.25
+            ? `${FRIENDS[randomFriendIndex].name} has completed all of their weekly tasks 🎉`
+            : `${FRIENDS[randomFriendIndex].name} has completed all of their daily tasks 🎉`,
       };
       setPosts((p) => [newPost, ...p]);
       return randomFriendIndex;
@@ -61,7 +71,7 @@ export default function SocialPage() {
               streak={FRIENDS[post.friendIndex].streak}
               avatar={FRIENDS[post.friendIndex].avatar}
               postImage={post.postImage}
-              message={`${FRIENDS[post.friendIndex].name} has completed all of their daily tasks 🎉`}
+              message={post.message}
             />
           ))}
         </View>
