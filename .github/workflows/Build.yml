@@ -29,7 +29,7 @@ jobs:
         run: npm run lint
 
       - name: Build Expo web
-        run: npx expo export:web --output-dir web-build
+        run: npx expo export --platform web
 
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
