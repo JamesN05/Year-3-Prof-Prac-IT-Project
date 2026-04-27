@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import SettingsRow from "@/components/settings-row";
+import { useAuth } from "@/contexts/auth-context";
 
 function SectionLabel({ title }: { title: string }) {
   return <Text style={styles.sectionLabel}>{title}</Text>;
@@ -19,6 +21,15 @@ function Card({ children }: { children: React.ReactNode }) {
 }
 
 export default function SettingsPage() {
+  const { signOut } = useAuth();
+
+  function handleSignOut() {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: () => signOut() },
+    ]);
+  }
+
   // Theme
   const [theme, setTheme] = useState<"Light" | "Dark" | "System">("System");
 
@@ -187,7 +198,7 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <SettingsRow label="Sign Out" type="danger" isLast />
+          <SettingsRow label="Sign Out" type="danger" onPress={handleSignOut} isLast />
         </Card>
 
         <View style={styles.footer}>

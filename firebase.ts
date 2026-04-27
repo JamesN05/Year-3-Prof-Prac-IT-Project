@@ -1,4 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
+import * as firebaseAuthRN from "@firebase/auth";
+import { initializeAuth, Persistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -12,4 +15,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// getReactNativePersistence exists in the RN bundle of @firebase/auth but
+// is absent from the shared TS types. Cast the module to expose it.
+const { getReactNativePersistence } = firebaseAuthRN as unknown as {
+  getReactNativePersistence: (storage: typeof AsyncStorage) => Persistence;
+};
+
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 export const db = getFirestore(app);
