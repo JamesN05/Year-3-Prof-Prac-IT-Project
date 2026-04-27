@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -68,10 +69,11 @@ function formatKey(key: string): string {
 
 interface MonthCalendarProps extends MonthItem {
   notes: Record<string, string>;
+  completedDates: Set<string>;
   onDayPress: (key: string) => void;
 }
 
-function MonthCalendar({ year, month, notes, onDayPress }: MonthCalendarProps) {
+function MonthCalendar({ year, month, notes, completedDates, onDayPress }: MonthCalendarProps) {
 
   const grid = buildGrid(year, month);
   const isCurrentMonth =
@@ -97,6 +99,7 @@ function MonthCalendar({ year, month, notes, onDayPress }: MonthCalendarProps) {
             isCurrentMonth && day === TODAY.getDate();
           const key = day !== null ? toKey(year, month, day) : null;
           const hasNote = key !== null && !!notes[key];
+          const isCompleted = key !== null && completedDates.has(key);
 
           return (
             <TouchableOpacity
@@ -104,6 +107,7 @@ function MonthCalendar({ year, month, notes, onDayPress }: MonthCalendarProps) {
               style={[
                 styles.cell,
                 isToday && styles.todayCell,
+                isCompleted && styles.completedRing,
                 day === null && styles.emptyCell,
               ]}
               onPress={() => key && onDayPress(key)}
@@ -134,9 +138,17 @@ function MonthCalendar({ year, month, notes, onDayPress }: MonthCalendarProps) {
 export default function CalendarPage() {
   const flatListRef = useRef<FlatList>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [completedDates, setCompletedDates] = useState<Set<string>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem("completion_history").then((raw) => {
+      if (!raw) return;
+      setCompletedDates(new Set(JSON.parse(raw) as string[]));
+    });
+  }, []);
 
   const openModal = (key: string) => {
     setSelectedKey(key);
@@ -202,6 +214,7 @@ export default function CalendarPage() {
               year={item.year}
               month={item.month}
               notes={notes}
+              completedDates={completedDates}
               onDayPress={openModal}
             />
           )}
@@ -349,6 +362,12 @@ const styles = StyleSheet.create({
 
   emptyCell: {
     opacity: 0,
+  },
+
+  completedRing: {
+    borderWidth: 2,
+    borderColor: "#F97316",
+    borderRadius: 100,
   },
 
   todayCell: {
