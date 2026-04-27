@@ -1,9 +1,49 @@
 import { FRIENDS } from "@/components/friends";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SocialPost from "../social-post";
 
+type PostData = {
+  id: number;
+  friendIndex: number;
+  postImage: number;
+};
+
+const POST_IMAGES = [
+  require("@/assets/images/SocialPost1.png"),
+  require("@/assets/images/SocialPost2.png"),
+  require("@/assets/images/SocialPost3.png"),
+  require("@/assets/images/SocialPost4.png"),
+  require("@/assets/images/SocialPost5.png"),
+];
+
+const INITIAL_POSTS: PostData[] = [
+  { id: 0, friendIndex: 4, postImage: POST_IMAGES[4] },
+];
+
 export default function SocialPage() {
+  const [posts, setPosts] = useState<PostData[]>(INITIAL_POSTS);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const shouldPost = Math.random() < 0.05;
+      if (!shouldPost) return;
+
+      const randomFriendIndex = Math.floor(Math.random() * FRIENDS.length);
+      const randomImageIndex = Math.floor(Math.random() * POST_IMAGES.length);
+      const newPost: PostData = {
+        id: Date.now(),
+        friendIndex: randomFriendIndex,
+        postImage: POST_IMAGES[randomImageIndex],
+      };
+      setPosts((p) => [newPost, ...p]);
+      return randomFriendIndex;
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -14,13 +54,16 @@ export default function SocialPage() {
           </Text>
         </View>
         <View>
-          <SocialPost
-            name={FRIENDS[4].name}
-            streak={FRIENDS[4].streak}
-            avatar={FRIENDS[4].avatar}
-            postImage={require("@/assets/images/SocialPost4.png")}
-            message="Has completed all of their daily tasks 🎉"
-          />
+          {posts.map((post) => (
+            <SocialPost
+              key={post.id}
+              name={FRIENDS[post.friendIndex].name}
+              streak={FRIENDS[post.friendIndex].streak}
+              avatar={FRIENDS[post.friendIndex].avatar}
+              postImage={post.postImage}
+              message={`${FRIENDS[post.friendIndex].name} has completed all of their daily tasks 🎉`}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -47,13 +90,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     marginTop: 4,
-  },
-  empty: {
-    alignItems: "center",
-    marginTop: 60,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#555",
   },
 });
