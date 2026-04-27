@@ -64,7 +64,7 @@ export default function CreatePostScreen() {
     );
 
     setPosting(false);
-    router.push("/(tabs)/social" as any);
+    router.back();
   }
 
   return (
