@@ -1,345 +1,176 @@
-import { useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import SettingsRow from "@/components/settings-row";
-import { useAuth } from "@/contexts/auth-context";
-
-function SectionLabel({ title }: { title: string }) {
-  return <Text style={styles.sectionLabel}>{title}</Text>;
-}
-
-function Card({ children }: { children: React.ReactNode }) {
-  return <View style={styles.card}>{children}</View>;
-}
+import { db } from '@/firebase';
+import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
+import { getAuth, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Alert, Linking, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsPage() {
-  const { signOut } = useAuth();
+  const router = useRouter();
+  const auth = getAuth();
 
-  function handleSignOut() {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: () => signOut() },
-    ]);
-  }
-
-  // Theme
-  const [theme, setTheme] = useState<"Light" | "Dark" | "System">("System");
-
-  // Notifications
+  const [darkMode, setDarkMode] = useState(false);
   const [dailyReminder, setDailyReminder] = useState(true);
   const [streakAlerts, setStreakAlerts] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(false);
+  const [tempUnit, setTempUnit] = useState('C');
 
-  // Habit preferences
-  const [showStreak, setShowStreak] = useState(true);
-  const [showHeatmap, setShowHeatmap] = useState(true);
+  const userId = auth.currentUser?.uid;
 
-  // Weather
-  const [tempUnit, setTempUnit] = useState<"°C" | "°F">("°C");
+  useEffect(() => {
+    if (userId) {
+      loadSettings();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    saveSettings();
+  }, [darkMode, dailyReminder, streakAlerts, weeklySummary, tempUnit]);
+
+  const loadSettings = async () => {
+    if (!userId) return;
+    try {
+      const ref = doc(db, 'settings', userId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const s = snap.data();
+        setDarkMode(s.darkMode ?? false);
+        setDailyReminder(s.dailyReminder ?? true);
+        setStreakAlerts(s.streakAlerts ?? true);
+        setWeeklySummary(s.weeklySummary ?? false);
+        setTempUnit(s.tempUnit ?? 'C');
+      }
+    } catch (e) {
+      console.log('Failed to load settings:', e);
+    }
+  };
+
+  const saveSettings = async () => {
+    if (!userId) return;
+    try {
+      const ref = doc(db, 'settings', userId);
+      await setDoc(ref, {
+        darkMode,
+        dailyReminder,
+        streakAlerts,
+        weeklySummary,
+        tempUnit,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.log('Failed to save settings:', e);
+    }
+  };
+
+  const syncNotifications = async () => {
+    try { 
+      await Notifications.cancelAllScheduledNotificationsAsync();
+
+      if (dailyReminder) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Daily Reminder',
+             body: "Don’t forget to complete your tasks today!",
+          },
+          trigger: { hour: 9, minute: 0, repeats: true,} as any 
+        });
+      }
+
+      if (streakAlerts) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Streak Alert',
+            body: "Keep your streak alive!",
+          },
+          trigger: { 
+            seconds: 3600,
+            repeats: true,
+          } as any,
+        });
+      }
+    } catch (e) {
+      console.log('Failed to sync notifications:', e);
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure?', [
+      { text: 'Cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut(auth);
+          router.replace('/login');
+        },
+      },
+    ]);
+  };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
+    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: darkMode ? '#111' : '#9EDCC8' }}>
+      <Text style={{ fontSize: 28, fontWeight: '700', marginBottom: 20, color: darkMode ? 'white' : 'black' }}>
+        Settings
+      </Text>
+
+      <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 16 }}>
+        <Text style={{ fontWeight: '700' }}>Appearance</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text>Dark Mode</Text>
+          <Switch value={darkMode} onValueChange={setDarkMode} />
+        </View>
+      </View>
+
+      <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 16 }}>
+        <Text style={{ fontWeight: '700' }}>Notifications</Text>
+        <Row label="Daily Reminder" value={dailyReminder} setValue={setDailyReminder} />
+        <Row label="Streak Alerts" value={streakAlerts} setValue={setStreakAlerts} />
+        <Row label="Weekly Summary" value={weeklySummary} setValue={setWeeklySummary} />
+      </View>
+
+      <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 16 }}>
+        <Text style={{ fontWeight: '700' }}>Weather</Text>
+        <View style={{ flexDirection: 'row', marginTop: 10, gap: 10 }}>
+          <TouchableOpacity onPress={() => setTempUnit('C')}>
+            <Text>°C</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setTempUnit('F')}>
+            <Text>°F</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 16, marginBottom: 16 }}>
+        <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+          <Text>Edit Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL('https://example.com/privacy')}>
+          <Text style={{ marginTop: 12 }}>Privacy Policy</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL('mailto:support@taskmaxxing.com')}>
+          <Text style={{ marginTop: 12 }}>Help & Support</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        onPress={handleSignOut}
+        style={{ backgroundColor: '#ffdddd', padding: 16, borderRadius: 16 }}
       >
-        {/* Page title */}
-        <View style={styles.pageHeader}>
-          <Text style={styles.pageTitle}>Settings</Text>
-        </View>
-
-        {/* ── Profile ── */}
-        <Card>
-          <View style={styles.profileRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>👤</Text>
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>Your Name</Text>
-              <Text style={styles.profileEmail}>you@example.com</Text>
-            </View>
-          </View>
-          <View style={styles.cardDivider} />
-          <SettingsRow label="Edit Profile" type="nav" isLast />
-        </Card>
-
-        {/* ── Theme ── */}
-        <SectionLabel title="APPEARANCE" />
-        <Card>
-          <View style={styles.segmentedWrapper}>
-            <Text style={styles.segmentedLabel}>Theme</Text>
-            <View style={styles.segmented}>
-              {(["Light", "Dark", "System"] as const).map((option, i, arr) => (
-                <TouchableOpacity
-                  key={option}
-                  style={[
-                    styles.segment,
-                    theme === option && styles.segmentActive,
-                    i === 0 && styles.segmentFirst,
-                    i === arr.length - 1 && styles.segmentLast,
-                  ]}
-                  onPress={() => setTheme(option)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      theme === option && styles.segmentTextActive,
-                    ]}
-                  >
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </Card>
-
-        {/* ── Notifications ── */}
-        <SectionLabel title="NOTIFICATIONS" />
-        <Card>
-          <SettingsRow
-            label="Daily Reminder"
-            type="toggle"
-            toggled={dailyReminder}
-            onPress={() => setDailyReminder((v) => !v)}
-          />
-          <SettingsRow
-            label="Streak Alerts"
-            type="toggle"
-            toggled={streakAlerts}
-            onPress={() => setStreakAlerts((v) => !v)}
-          />
-          <SettingsRow
-            label="Weekly Summary"
-            type="toggle"
-            toggled={weeklySummary}
-            onPress={() => setWeeklySummary((v) => !v)}
-            isLast
-          />
-        </Card>
-
-        {/* ── Habit Preferences ── */}
-        <SectionLabel title="HABIT PREFERENCES" />
-        <Card>
-          <SettingsRow
-            label="Show Streak Counter"
-            type="toggle"
-            toggled={showStreak}
-            onPress={() => setShowStreak((v) => !v)}
-          />
-          <SettingsRow
-            label="Show Activity Heatmap"
-            type="toggle"
-            toggled={showHeatmap}
-            onPress={() => setShowHeatmap((v) => !v)}
-          />
-          <SettingsRow
-            label="Daily Reminder Time"
-            type="nav"
-            value="08:00 AM"
-          />
-          <SettingsRow
-            label="Weekly Reset Day"
-            type="nav"
-            value="Monday"
-            isLast
-          />
-        </Card>
-
-        {/* ── Weather ── */}
-        <SectionLabel title="WEATHER" />
-        <Card>
-          <SettingsRow label="Default City" type="nav" value="Galway" />
-          <View style={styles.segmentedWrapper}>
-            <Text style={styles.segmentedLabel}>Temperature Unit</Text>
-            <View style={styles.segmented}>
-              {(["°C", "°F"] as const).map((option, i, arr) => (
-                <TouchableOpacity
-                  key={option}
-                  style={[
-                    styles.segment,
-                    tempUnit === option && styles.segmentActive,
-                    i === 0 && styles.segmentFirst,
-                    i === arr.length - 1 && styles.segmentLast,
-                  ]}
-                  onPress={() => setTempUnit(option)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      tempUnit === option && styles.segmentTextActive,
-                    ]}
-                  >
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </Card>
-
-        {/* ── App ── */}
-        <SectionLabel title="APP" />
-        <Card>
-          <SettingsRow label="Version" type="info" value="1.0.0" />
-          <SettingsRow label="About TaskMaxxing" type="nav" />
-          <SettingsRow label="Help & Support" type="nav" />
-          <SettingsRow label="Privacy Policy" type="nav" isLast />
-        </Card>
-
-        <Card>
-          <SettingsRow label="Sign Out" type="danger" onPress={handleSignOut} isLast />
-        </Card>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>TaskMaxxing v1.0.0</Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        <Text style={{ textAlign: 'center', fontWeight: '700', color: 'red' }}>
+          Sign Out
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#9EDCC8",
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  pageHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  pageTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    fontStyle: "italic",
-    color: "#1a1a1a",
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#666",
-    letterSpacing: 0.6,
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 6,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    marginHorizontal: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginHorizontal: 16,
-  },
-  // Profile
-  profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    paddingBottom: 14,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#e8f8f3",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 14,
-  },
-  avatarText: {
-    fontSize: 28,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  profileEmail: {
-    fontSize: 13,
-    color: "#999",
-  },
-  // Segmented control
-  segmentedWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  segmentedLabel: {
-    fontSize: 15,
-    color: "#222",
-  },
-  segmented: {
-    flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    padding: 2,
-  },
-  segment: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  segmentFirst: {
-    borderTopLeftRadius: 6,
-    borderBottomLeftRadius: 6,
-  },
-  segmentLast: {
-    borderTopRightRadius: 6,
-    borderBottomRightRadius: 6,
-  },
-  segmentActive: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  segmentText: {
-    fontSize: 13,
-    color: "#666",
-    fontWeight: "500",
-  },
-  segmentTextActive: {
-    color: "#222",
-    fontWeight: "600",
-  },
-  // Footer
-  footer: {
-    alignItems: "center",
-    paddingTop: 24,
-  },
-  footerText: {
-    fontSize: 12,
-    color: "#888",
-  },
-});
+  function Row({ label, value, setValue }: { label: string; value: boolean; setValue: (v: boolean) => void }) {
+    return (
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+        <Text>{label}</Text>
+        <Switch value={value} onValueChange={setValue} />
+      </View>
+);
+}
+  }
+}
