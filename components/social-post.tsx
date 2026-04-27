@@ -12,7 +12,8 @@ type PostInfo = {
   name: string;
   streak: number;
   avatar: ImageSourcePropType;
-  postImage: ImageSourcePropType;
+  postImage?: ImageSourcePropType;
+  postImageUri?: string;
   message: string;
 };
 
@@ -21,6 +22,7 @@ export default function SocialPost({
   streak,
   avatar,
   postImage,
+  postImageUri,
   message,
 }: PostInfo) {
   const [liked, setLiked] = useState(false);
@@ -51,7 +53,11 @@ export default function SocialPost({
         <Image source={avatar} style={styles.avatar} />
         <Text style={styles.name}>{name}</Text>
       </View>
-      <Image source={postImage} style={styles.postImage} resizeMode="contain" />
+      <Image
+        source={postImageUri ? { uri: postImageUri } : postImage!}
+        style={styles.postImage}
+        resizeMode="cover"
+      />
       <View style={styles.footer}>
         <Text style={styles.message}>{message}</Text>
       </View>

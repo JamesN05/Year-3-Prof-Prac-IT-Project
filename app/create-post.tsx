@@ -1,7 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -14,24 +14,43 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+export const USER_POSTS_KEY = "user_posts";
+
 export default function CreatePostScreen() {
-  const { imageUri } = useLocalSearchParams<{ imageUri: string }>();
-  const [caption, setCaption] = useState("Just completed all my daily habits! 🎉");
+  const [caption, setCaption] = useState(
+    "Just completed all my daily habits! 🎉",
+  );
   const [posting, setPosting] = useState(false);
+  const { imageUri, streak } = useLocalSearchParams<{
+    imageUri: string;
+    streak: string;
+  }>();
 
   function handleCancel() {
     router.back();
   }
 
-  function handleShare() {
+  async function handleShare() {
     setPosting(true);
-    // Mock post — replace with real backend call later
-    setTimeout(() => {
-      setPosting(false);
-      Alert.alert("Posted!", "Your progress has been shared to Social.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
-    }, 800);
+
+    const newPost = {
+      id: Date.now(),
+      friendIndex: -1,
+      postImageUri: imageUri,
+      streak: Number(streak) || 0,
+      message: caption, // use the caption they typed
+      createdAt: Date.now(),
+    };
+
+    const raw = await AsyncStorage.getItem(USER_POSTS_KEY);
+    const existing = raw ? JSON.parse(raw) : [];
+    await AsyncStorage.setItem(
+      USER_POSTS_KEY,
+      JSON.stringify([newPost, ...existing]),
+    );
+
+    setPosting(false);
+    router.push("/(tabs)/social" as any);
   }
 
   return (
@@ -51,7 +70,9 @@ export default function CreatePostScreen() {
             disabled={posting}
             style={[styles.shareBtn, posting && styles.shareBtnDisabled]}
           >
-            <Text style={styles.shareBtnText}>{posting ? "Sharing…" : "Share"}</Text>
+            <Text style={styles.shareBtnText}>
+              {posting ? "Sharing…" : "Share"}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -63,7 +84,11 @@ export default function CreatePostScreen() {
           {/* Image preview */}
           {imageUri ? (
             <View style={styles.imageCard}>
-              <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.image}
+                resizeMode="cover"
+              />
             </View>
           ) : (
             <View style={[styles.imageCard, styles.imagePlaceholder]}>
@@ -95,7 +120,9 @@ export default function CreatePostScreen() {
             </View>
             <View style={[styles.infoRow, styles.infoRowLast]}>
               <Text style={styles.infoEmoji}>✅</Text>
-              <Text style={styles.infoText}>Daily habits completion visible to friends</Text>
+              <Text style={styles.infoText}>
+                Daily habits completion visible to friends
+              </Text>
             </View>
           </View>
         </ScrollView>

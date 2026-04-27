@@ -10,7 +10,7 @@ import HabitsCard, { type Habit } from "@/components/habits-card";
 import StatCard from "@/components/stat-card";
 import WeatherCard from "@/components/weather-card";
 //Testing Firebase Remocve after
-import FirestoreTerminalTest from "@/components/FirestoreTerminalTest";
+//import FirestoreTerminalTest from "@/components/FirestoreTerminalTest";
 
 const STREAK_KEY = "daily_streak";
 const HISTORY_KEY = "completion_history";
@@ -110,7 +110,7 @@ export default function HomePage() {
     if (!result.canceled) {
       router.push({
         pathname: "/create-post" as any,
-        params: { imageUri: result.assets[0].uri },
+        params: { imageUri: result.assets[0].uri, streak: streak.toString() },
       });
     }
   }
@@ -156,7 +156,7 @@ export default function HomePage() {
         </View>
 
         {/* Testing Firebase Remove after */}
-        <FirestoreTerminalTest />
+        {/*<FirestoreTerminalTest />*/}
 
         <HabitsCard
           title="DAILY HABITS"

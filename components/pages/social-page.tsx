@@ -1,5 +1,7 @@
 import { FRIENDS } from "@/components/friends";
-import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SocialPost from "../social-post";
@@ -7,9 +9,13 @@ import SocialPost from "../social-post";
 type PostData = {
   id: number;
   friendIndex: number;
-  postImage: number;
+  postImage?: number;
   message: string;
+  postImageUri?: string;
+  streak: number;
 };
+
+const USER_POSTS_KEY = "user_posts";
 
 const POST_IMAGES = [
   require("@/assets/images/SocialPost1.png"),
@@ -19,17 +25,35 @@ const POST_IMAGES = [
   require("@/assets/images/SocialPost5.png"),
 ];
 
+const GREGORY_AVATAR = require("@/assets/images/Gregory.png");
+
 const INITIAL_POSTS: PostData[] = [
   {
     id: 0,
     friendIndex: 4,
     postImage: POST_IMAGES[4],
+    streak: FRIENDS[4].streak,
     message: `${FRIENDS[4].name} has completed all of their daily tasks 🎉`,
   },
 ];
 
 export default function SocialPage() {
   const [posts, setPosts] = useState<PostData[]>(INITIAL_POSTS);
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem(USER_POSTS_KEY).then((raw) => {
+        console.log("RAW FROM STORAGE:", raw);
+        if (!raw) return;
+        const userPosts: PostData[] = JSON.parse(raw);
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newOnes = userPosts.filter((p) => !existingIds.has(p.id));
+          return [...newOnes, ...prev];
+        });
+      });
+    }, []),
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -42,6 +66,7 @@ export default function SocialPage() {
         id: Date.now(),
         friendIndex: randomFriendIndex,
         postImage: POST_IMAGES[randomImageIndex],
+        streak: FRIENDS[randomFriendIndex].streak,
         message:
           Math.random() < 0.25
             ? `${FRIENDS[randomFriendIndex].name} has completed all of their weekly tasks 🎉`
@@ -67,10 +92,19 @@ export default function SocialPage() {
           {posts.map((post) => (
             <SocialPost
               key={post.id}
-              name={FRIENDS[post.friendIndex].name}
-              streak={FRIENDS[post.friendIndex].streak}
-              avatar={FRIENDS[post.friendIndex].avatar}
+              name={
+                post.friendIndex === -1
+                  ? "User"
+                  : FRIENDS[post.friendIndex].name
+              }
+              streak={post.streak}
+              avatar={
+                post.friendIndex === -1
+                  ? GREGORY_AVATAR
+                  : FRIENDS[post.friendIndex].avatar
+              }
               postImage={post.postImage}
+              postImageUri={post.postImageUri}
               message={post.message}
             />
           ))}
