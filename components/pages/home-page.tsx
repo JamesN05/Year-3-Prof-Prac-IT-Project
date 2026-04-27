@@ -151,7 +151,7 @@ export default function HomePage() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>TaskMaxxing™</Text>
+          <Text style={styles.title}>TaskMaxxing</Text>
         </View>
 
         {/* Testing Firebase Remove after */}

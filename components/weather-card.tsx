@@ -31,6 +31,7 @@ const WEATHER_EMOJI: Record<string, string> = {
 type WeatherData = {
   emoji: string;
   condition: string;
+  temp: number;
 };
 
 export default function WeatherCard() {
@@ -63,6 +64,7 @@ export default function WeatherCard() {
         setWeather({
           emoji: WEATHER_EMOJI[main] ?? "🌡️",
           condition: main.toUpperCase(),
+          temp: Math.round(data.main.temp),
         });
       } catch {
         setError(true);
@@ -89,6 +91,7 @@ export default function WeatherCard() {
 
   const emoji = loading ? "⏳" : error ? "❓" : weather!.emoji;
   const condition = loading ? "LOADING" : error ? "NOT FOUND" : weather!.condition;
+  const tempDisplay = !loading && !error ? `${weather!.temp}°` : null;
 
   return (
     <>
@@ -99,6 +102,9 @@ export default function WeatherCard() {
         activeOpacity={0.85}
       >
         <Text style={styles.emoji}>{emoji}</Text>
+        {tempDisplay ? (
+          <Text style={styles.temp}>{tempDisplay}</Text>
+        ) : null}
         <Text style={styles.condition}>{condition}</Text>
         <Text style={styles.city}>{city}</Text>
       </TouchableOpacity>
@@ -155,8 +161,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   emoji: {
-    fontSize: 40,
-    marginBottom: 6,
+    fontSize: 28,
+    marginBottom: 2,
+  },
+  temp: {
+    fontSize: 34,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    lineHeight: 38,
   },
   condition: {
     fontSize: 13,
