@@ -129,9 +129,6 @@ useEffect(() => {
       </View>
 
       <View style={{ backgroundColor: cardBg, padding: 16, borderRadius: 16, marginBottom: 16 }}>
-        <TouchableOpacity onPress={() => router.push('/profile' as any)}>
-          <Text style={{ color: textColor }}>Edit Profile</Text>
-        </TouchableOpacity>
         <TouchableOpacity onPress={() => Linking.openURL('https://example.com/privacy')}>
           <Text style={{ marginTop: 12, color: textColor }}>Privacy Policy</Text>
         </TouchableOpacity>
