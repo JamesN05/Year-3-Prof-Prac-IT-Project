@@ -1,4 +1,5 @@
 import { db } from "@/firebase";
+import { useDebugDate } from "@/context/debug-date-context";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { getAuth, signOut } from "firebase/auth";
@@ -23,6 +24,7 @@ export default function SettingsPage() {
   const [streakAlerts, setStreakAlerts] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(false);
   const [tempUnit, setTempUnit] = useState("C");
+  const { debugModeEnabled, setDebugModeEnabled } = useDebugDate();
 
   const userId = auth.currentUser?.uid;
 
@@ -220,6 +222,22 @@ export default function SettingsPage() {
         >
           <Text style={{ marginTop: 12 }}>Help & Support</Text>
         </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          backgroundColor: "white",
+          padding: 16,
+          borderRadius: 16,
+          marginBottom: 16,
+        }}
+      >
+        <Text style={{ fontWeight: "700" }}>Developer</Text>
+        <Row
+          label="Debug Mode (date override)"
+          value={debugModeEnabled}
+          setValue={setDebugModeEnabled}
+        />
       </View>
 
       <TouchableOpacity

@@ -1,3 +1,4 @@
+import { useDebugDate } from "@/context/debug-date-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -74,13 +75,14 @@ interface MonthCalendarProps extends MonthItem {
   notes: Record<string, string>;
   completedDates: Set<string>;
   onDayPress: (key: string) => void;
+  referenceDate: Date;
 }
 
-function MonthCalendar({ year, month, notes, completedDates, onDayPress }: MonthCalendarProps) {
+function MonthCalendar({ year, month, notes, completedDates, onDayPress, referenceDate }: MonthCalendarProps) {
 
   const grid = buildGrid(year, month);
   const isCurrentMonth =
-    year === TODAY.getFullYear() && month === TODAY.getMonth();
+    year === referenceDate.getFullYear() && month === referenceDate.getMonth();
 
   return (
     <View style={styles.monthCard}>
@@ -99,7 +101,7 @@ function MonthCalendar({ year, month, notes, completedDates, onDayPress }: Month
       <View style={styles.grid}>
         {grid.map((day, idx) => {
           const isToday =
-            isCurrentMonth && day === TODAY.getDate();
+            isCurrentMonth && day === referenceDate.getDate();
           const key = day !== null ? toKey(year, month, day) : null;
           const hasNote = key !== null && !!notes[key];
           const isCompleted = key !== null && completedDates.has(key);
@@ -142,14 +144,15 @@ interface MonthlySummaryProps {
   month: MonthItem;
   completedDates: Set<string>;
   notes: Record<string, string>;
+  referenceDate: Date;
 }
 
-function MonthlySummary({ month, completedDates, notes }: MonthlySummaryProps) {
+function MonthlySummary({ month, completedDates, notes, referenceDate }: MonthlySummaryProps) {
   const { year, month: m } = month;
   const daysInMonth = new Date(year, m + 1, 0).getDate();
-  const isCurrentMonth = year === TODAY.getFullYear() && m === TODAY.getMonth();
-  const isPast = year < TODAY.getFullYear() || (year === TODAY.getFullYear() && m < TODAY.getMonth());
-  const elapsedDays = isCurrentMonth ? TODAY.getDate() : isPast ? daysInMonth : 0;
+  const isCurrentMonth = year === referenceDate.getFullYear() && m === referenceDate.getMonth();
+  const isPast = year < referenceDate.getFullYear() || (year === referenceDate.getFullYear() && m < referenceDate.getMonth());
+  const elapsedDays = isCurrentMonth ? referenceDate.getDate() : isPast ? daysInMonth : 0;
 
   const prefix = `${year}-${String(m + 1).padStart(2, "0")}`;
   let completedCount = 0;
@@ -179,6 +182,7 @@ function MonthlySummary({ month, completedDates, notes }: MonthlySummaryProps) {
 }
 
 export default function CalendarPage() {
+  const { today } = useDebugDate();
   const flatListRef = useRef<FlatList>(null);
   const [visibleMonthIdx, setVisibleMonthIdx] = useState(CENTER_INDEX);
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 });
@@ -267,6 +271,7 @@ export default function CalendarPage() {
               notes={notes}
               completedDates={completedDates}
               onDayPress={openModal}
+              referenceDate={today}
             />
           )}
         />
@@ -275,6 +280,7 @@ export default function CalendarPage() {
           month={MONTHS[visibleMonthIdx]}
           completedDates={completedDates}
           notes={notes}
+          referenceDate={today}
         />
 
         <View style={styles.importantSection}>
