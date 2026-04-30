@@ -1,50 +1,81 @@
-# Welcome to your Expo app 👋
+# TaskMaxxing
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+TaskMaxxing is an Expo React Native productivity and habit-tracking app focused on daily consistency, streak building, and lightweight social motivation. The app includes Firebase username/password authentication, a GitHub-style completion heatmap, local habit persistence, and a camera-based social posting flow tied to daily habit completion.
 
-## Get started
+## Features
 
-1. Install dependencies
+- Username + password authentication powered by Firebase Auth, with user profile data stored in Firestore `users/{uid}` and username lookup data stored in `usernames/{username}`.
+- Daily habits and streak-focused home experience with local persistence for habits, streaks, and history using AsyncStorage.
+- GitHub-style heatmap that turns green when all daily tasks are completed.
+- Camera unlock flow after completing daily habits, allowing the user to capture an image and create a social-style post.
+- Weather card on the home screen that shows current conditions and temperature.
+- Polished card-based UI with ongoing glassmorphism-inspired styling work.
 
-   ```bash
-   npm install
-   ```
+## Tech stack
 
-2. Start the app
+- Expo + React Native with file-based routing in the `app` directory.
+- Firebase Authentication for account sign-in and Firestore for user records.
+- AsyncStorage for local app data such as habits, streaks, and history.
+- Expo packages for camera, notifications, gradients, and navigation support.
+
+## Install dependencies
+
+Install the base project dependencies:
+
+```bash
+npm install
+```
+
+Install Firebase SDK support for Expo:
+
+```bash
+npx expo install firebase
+```
+
+Install the Expo packages used in the app:
+
+```bash
+npx expo install expo-router expo-notifications expo-camera expo-linear-gradient expo-device expo-constants
+npx expo install @react-native-async-storage/async-storage react-native-safe-area-context react-native-screens
+```
+
+## Getting started
+
+1. Start the project:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. Open the app in one of the available targets:
+- a development build,
+- an Android emulator,
+- an iOS simulator,
+- or Expo Go, depending on the feature set you are testing.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Firebase setup
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+This app expects Firebase to be configured for authentication and Firestore usage.
 
-## Get a fresh project
+Required setup:
+- Enable Email/Password sign-in in Firebase Authentication.
+- Create a Firestore database.
+- Make sure the Firestore rules allow the app to create and access `users/{uid}` and `usernames/{username}` appropriately.
 
-When you're ready, run:
+## Project structure
 
-```bash
-npm run reset-project
-```
+- `app/` – file-based routes and screen structure for the Expo app.
+- `components/` – reusable UI such as cards, settings rows, weather card, and social post components.
+- `firebase.ts` – Firebase app initialization and exported auth / Firestore instances.
+- `utils/usernameToEmail.ts` – helper used to support username-first login on top of Firebase Auth.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Notes
 
-## Learn more
+- Authentication is fully working in the current app using Firebase Auth and Firestore-backed username mapping.
+- Habits, streaks, and history are still stored locally rather than in Firestore at this stage.
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## The Team 
+Tomás Óg Mac Donncha,
+Laoi Rafferty,
+Sam Ojo,
+James Nagle.
